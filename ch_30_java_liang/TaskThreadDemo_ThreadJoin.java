@@ -1,0 +1,72 @@
+public class TaskThreadDemo_ThreadStop {
+    public static void main(String[] args){
+        // create tasks
+        Runnable printA = new PrintChar('A', 100);
+        Runnable printB = new PrintChar('B', 60);
+        Runnable printZ = new PrintNum(50, 90);
+
+        // create thread
+        Thread thread1 = new Thread(printA);
+        Thread thread2 = new Thread(printB);
+        Thread thread3 = new Thread(printZ);
+
+        // start thread
+        thread1.start();
+        thread2.start();
+        thread3.start();
+
+        System.out.println("\n");
+        
+    }
+}
+
+
+class PrintChar implements Runnable{
+    private char charToPrint;
+    private int times;
+
+    public PrintChar(char c, int t){
+        charToPrint = c;
+        times = t;
+    }
+
+    @Override //overides the Runnable method run() 
+    public void run(){
+        for (int i=0; i < times; i++){
+            System.out.print(charToPrint);
+        }
+    }
+}
+
+
+class PrintNum implements Runnable{
+    private int start_num;
+    private int end_num;
+
+    public PrintNum(int s, int e){
+        start_num = s;
+        end_num = e;
+    }
+
+    @Override //overides the Runnable method run() 
+    public void run(){
+        // create a new thread
+        Thread thread4 = new Thread(new PrintChar('c', 150));
+        thread4.start();
+
+        try{
+            for (int i=0; i < end_num+1; i++){
+                System.out.print(" " + i);
+
+                if (i == 50){
+                    thread4.join();
+                }
+                
+            }
+        } catch(InterruptedException ex){
+            System.out.println("\nThread  was interrupted and is stopping.");
+        }
+        
+    }
+
+}    
