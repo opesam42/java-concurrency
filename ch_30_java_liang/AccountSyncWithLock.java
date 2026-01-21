@@ -1,7 +1,7 @@
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
-public class AccountWithoutSync{
+public class AccountWithLock{
     private static Account account = new Account();
     private static Lock lock = new ReentrantLock();
 
