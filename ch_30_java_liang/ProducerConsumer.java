@@ -45,4 +45,9 @@ public class ProducerConsumer {
             } catch(InterruptedException ex) {}
         }
     }
+
+    // private static class Buffer{
+    //     private static final
+    // }
+
 }
