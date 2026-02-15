@@ -6,49 +6,90 @@ public class AyoBoard {
     private final int[] pits = new int[12];
     private int playerAScore = 0;
     private int playerBScore = 0;
-    private int currentPlayer = 0; // 0 for Player A, 1 for Player B
+    private int currentPlayer = 0; 
     private boolean gameOver = false;
 
     public AyoBoard() {
-        // Initialize 4 seeds in each pit
         Arrays.fill(pits, 4);
+        System.out.println("SYSTEM: Game initialized. 48 seeds distributed across 12 pits.");
     }
 
-    // The synchronized "Monitor" method
     public synchronized void makeMove(int playerID, int pitIndex) throws InterruptedException {
-        // 1. Wait until it is this player's turn
+        
         while (currentPlayer != playerID && !gameOver) {
             wait(); 
         }
 
         if (gameOver) return;
 
-        System.out.println("Player " + (playerID == 0 ? "A" : "B") + " moves from pit " + pitIndex);
+        String name = (playerID == 0 ? "Player A" : "Player B");
+        int seedsToSow = pits[pitIndex];
+        
+        // 2. Initial Move Reporting
+        System.out.println("\nACTION: " + name + " selects pit " + pitIndex + " containing " + seedsToSow + " seeds.");
 
-        // 2. Perform Sowing Logic
-        int seeds = pits[pitIndex];
         pits[pitIndex] = 0;
-        int lastPit = sowSeeds(pitIndex, seeds);
+        int lastPit = sowSeeds(pitIndex, seedsToSow);
+        
+        System.out.println("STATUS: Sowing complete. Final seed placed in pit " + lastPit + ".");
 
-        // 3. Perform Capture Logic (Simplified)
+        // report seed capture
+        int scoreBefore = (playerID == 0) ? playerAScore : playerBScore;
         applyCapturingRules(playerID, lastPit);
+        int scoreAfter = (playerID == 0) ? playerAScore : playerBScore;
 
-        // 4. Check if game is over (Total seeds captured > 24 or no moves left)
-        if (playerAScore + playerBScore >= 48 || playerAScore > 24 || playerBScore > 24) {
-            gameOver = true;
-            System.out.println("GAME OVER! Scores: A=" + playerAScore + " B=" + playerBScore);
+        if (scoreAfter > scoreBefore) {
+            int gained = scoreAfter - scoreBefore;
+            System.out.println("CAPTURE: " + name + " successfully harvested " + gained + " seeds from opponent territory.");
+        } else {
+            System.out.println("STATUS: No seeds were eligible for capture this turn.");
         }
 
-        // 5. Switch turn and wake up the other thread
+        // log game summary
+        printScoreSummary();
+        renderBoardMap();
+
+        // check for termination
+        if (playerAScore >= 25 || playerBScore >= 25 || (playerAScore + playerBScore >= 48)) {
+            gameOver = true;
+            printFinalResults();
+        }
+
+        // give permission for next player to play
         currentPlayer = (playerID == 0) ? 1 : 0;
         notifyAll();
     }
 
+    private void printScoreSummary() {
+        System.out.println("CURRENT SCOREBOARD: Player A [" + playerAScore + "] | Player B [" + playerBScore + "]");
+    }
+
+    private void renderBoardMap() {
+        System.out.print("BOARD STATE (Pits 0-11): ");
+        for (int i = 0; i < 12; i++) {
+            if (i == 6) System.out.print("| "); 
+            System.out.print(pits[i] + " ");
+        }
+        System.out.println();
+    }
+
+    private void printFinalResults() {
+        System.out.println("\nTERMINATION: Game Over condition met.");
+        System.out.println("FINAL TOTALS: A: " + playerAScore + " | B: " + playerBScore);
+        if (playerAScore > playerBScore) {
+            System.out.println("RESULT: Player A is the winner.");
+        } else if (playerBScore > playerAScore) {
+            System.out.println("RESULT: Player B is the winner.");
+        } else {
+            System.out.println("RESULT: The match ended in a draw.");
+        }
+    }
+
+    // Existing sowSeeds and applyCapturingRules logic...
     private int sowSeeds(int startPit, int seeds) {
         int current = startPit;
         while (seeds > 0) {
             current = (current + 1) % 12;
-            // Special Rule: Skip the starting pit if more than 12 seeds
             if (current == startPit) continue; 
             pits[current]++;
             seeds--;
@@ -56,51 +97,25 @@ public class AyoBoard {
         return current;
     }
 
-
     private void applyCapturingRules(int playerID, int lastPit) {
         int current = lastPit;
-
-        // 1. Identify the opponent's territory
-        // If playerID is 0 (A), opponent is 6-11. 
-        // If playerID is 1 (B), opponent is 0-5.
         int opponentStart = (playerID == 0) ? 6 : 0;
         int opponentEnd = (playerID == 0) ? 11 : 5;
 
-        // 2. Start the backward chain check
         while (true) {
-            // RULE: You can only capture from the opponent's side
-            if (current < opponentStart || current > opponentEnd) {
-                break; 
-            }
-
-            // RULE: Capture only if the pit now contains exactly 2 or 3 seeds
+            if (current < opponentStart || current > opponentEnd) break; 
             if (pits[current] == 2 || pits[current] == 3) {
-                int capturedSeeds = pits[current];
-                pits[current] = 0; // Empty the pit
-
-                // Add to the correct player's score
-                if (playerID == 0) {
-                    playerAScore += capturedSeeds;
-                } else {
-                    playerBScore += capturedSeeds;
-                }
-
-                // Move BACKWARDS to the previous pit (Clockwise)
-                // We add 11 and % 12 to safely move back one index in a circle
+                int captured = pits[current];
+                pits[current] = 0;
+                if (playerID == 0) playerAScore += captured;
+                else playerBScore += captured;
                 current = (current + 11) % 12;
             } else {
-                // Stop as soon as a pit doesn't meet the 2 or 3 seed requirement
                 break;
             }
         }
     }
 
-    public synchronized boolean isGameOver() {
-        return gameOver;
-    }
-
-    // helper methods
-    public synchronized int getSeedCount(int pitIndex){
-        return pits[pitIndex];
-    }
+    public synchronized boolean isGameOver() { return gameOver; }
+    public synchronized int getSeedCount(int pitIndex) { return pits[pitIndex]; }
 }
