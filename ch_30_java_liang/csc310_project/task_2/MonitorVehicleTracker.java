@@ -15,12 +15,12 @@ public class MonitorVehicleTracker {
         this.locations = deepCopy(locations);
     }
 
-    // Returns a SNAPSHOT of all locations (Deep Copy)
+    // DeepCopy returns a snapshot of all locations 
     public synchronized Map<String, MutablePoint> getLocations() {
         return deepCopy(locations);
     }
 
-    // Returns a SNAPSHOT of one location
+    // Deepcopy returns a snapshop of one location
     public synchronized MutablePoint getLocation(String id) {
         MutablePoint loc = locations.get(id);
         return loc == null ? null : new MutablePoint(loc);
@@ -36,11 +36,11 @@ public class MonitorVehicleTracker {
         loc.y = y;
     }
 
-    // Helper: Creates a deep copy of the map so the original is never exposed
-    private static Map<String, MutablePoint> deepCopy(Map<String, MutablePoint> m) {
+    // Helper method: Creates a deep copy of the map so the original is never exposed
+    private static Map<String, MutablePoint> deepCopy(Map<String, MutablePoint> original) {
         Map<String, MutablePoint> result = new HashMap<>();
-        for (String id : m.keySet()) {
-            result.put(id, new MutablePoint(m.get(id)));
+        for (String id : original.keySet()) {
+            result.put(id, new MutablePoint(original.get(id)));
         }
         return Collections.unmodifiableMap(result);
     }
