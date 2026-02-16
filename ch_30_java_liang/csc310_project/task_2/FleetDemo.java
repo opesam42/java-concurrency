@@ -5,16 +5,15 @@ import java.util.Map;
 
 public class FleetDemo {
     public static void main(String[] args) {
-        // 1. Setup initial data
+        // data setup
         Map<String, MutablePoint> initialMap = new HashMap<>();
         MutablePoint p1 = new MutablePoint(); p1.x = 0; p1.y = 0;
         
         initialMap.put("Taxi-001", p1);
 
-        // 2. Create the Thread-Safe Tracker
         MonitorVehicleTracker tracker = new MonitorVehicleTracker(initialMap);
 
-        // 3. Create a Thread to simulate a GPS updating the location
+        // thread to simulate a GPS updating the location
         Thread updater = new Thread(() -> {
             try {
                 for (int i = 0; i < 5; i++) {
@@ -27,7 +26,7 @@ public class FleetDemo {
             } catch (InterruptedException e) { e.printStackTrace(); }
         });
 
-        // 4. Create a Thread to simulate a Dispatcher viewing the map
+        // thread to simulate a Dispatcher viewing the map
         Thread viewer = new Thread(() -> {
             try {
                 for (int i = 0; i < 5; i++) {

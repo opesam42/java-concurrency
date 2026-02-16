@@ -75,7 +75,11 @@ public class DiningPhilosophers {
         }
 
         private void sleep(int seconds) {
-            try { TimeUnit.SECONDS.sleep(seconds); } catch (InterruptedException e) { e.printStackTrace(); }
+            try { 
+                TimeUnit.SECONDS.sleep(seconds); 
+            } catch (InterruptedException e) { 
+                e.printStackTrace(); 
+            }
         }
     }
 }
